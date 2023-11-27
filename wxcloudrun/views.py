@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from flask import render_template, request
 from run import app
@@ -5,6 +6,8 @@ from wxcloudrun.dao import delete_counterbyid, query_counterbyid, insert_counter
 from wxcloudrun.model import Counters
 from wxcloudrun.response import make_succ_empty_response, make_succ_response, make_err_response
 import time
+from openai import OpenAI
+client = OpenAI()
 
 
 TEXT_TEMPLATE = """
@@ -16,6 +19,7 @@ TEXT_TEMPLATE = """
     <Content><![CDATA[{content}]]></Content>
 </xml>
 """
+
 
 @app.route('/')
 def index():
@@ -41,6 +45,20 @@ def receive_message():
     }
     try:
         res['content'] = '这里应该填写响应数据'
+        key = os.environ.get('OPENAI_API_KEY', '')[-10:]
+        app.logger.info(f'openai_api_key: {key}')
+
+        completion = client.chat.completions.create(
+          model="gpt-3.5-turbo",
+          messages=[
+            # {"role": "system", "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
+            # {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
+            {"role": "user", "content": "Result of 1 + 1"}
+          ]
+        )
+
+        app.logger.info(completion.choices[0].message)
+        res['content'] = str(completion.choices[0].message)
 
     except Exception as e:
         app.logger.error(f'请求报错，error: {e}')
