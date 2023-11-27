@@ -34,8 +34,8 @@ def receive_message():
     req = request.get_json()
     app.logger.info(req)
     res = {
-        'to_user': req['o87Z058UxSmen0FNRjeY49Wtm8Rs'],
-        'from_user': req['gh_f347f8bd0c79'],
+        'to_user': req['FromUserName'],
+        'from_user': req['ToUserName'],
         'create_time': int(time.time()),
         'content': '抱歉，系统当前不可用，请稍后再试',
     }
