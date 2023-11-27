@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from flask import render_template, request
+from flask import render_template, request, jsonify
 from run import app
 from wxcloudrun.dao import delete_counterbyid, query_counterbyid, insert_counter, update_counterbyid
 from wxcloudrun.model import Counters
@@ -64,7 +64,16 @@ def receive_message():
         except Exception as e:
             app.logger.exception(f'请求报错，error: {e}')
 
-    return TEXT_TEMPLATE.format(**res)
+    # return TEXT_TEMPLATE.format(**res)
+    ret = {
+        "ToUserName": req['FromUserName'],
+        "FromUserName": req['ToUserName'],
+        "CreateTime": int(time.time()),
+        "MsgType": "text",
+        "Content": res['content'],
+    }
+
+    return jsonify(ret)
 
 
 @app.route('/api/count', methods=['POST'])
