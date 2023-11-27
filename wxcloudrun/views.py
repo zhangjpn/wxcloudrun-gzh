@@ -13,6 +13,18 @@ def index():
     """
     return render_template('index.html')
 
+@app.route('/api/message', methods=['POST'])
+def receive_message():
+    """
+    接收公众号消息推送
+    """
+
+
+    req = request.get_json()
+    app.logger.info(req)
+
+    return 'success'
+
 
 @app.route('/api/count', methods=['POST'])
 def count():
