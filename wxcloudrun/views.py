@@ -80,6 +80,7 @@ def receive_message1():
 def worker(msg_id):
 
     req = jobs.get(msg_id)
+    app.logger.info(f'开始任务, {req}')
     if not req:
         return
 
@@ -116,6 +117,7 @@ def worker(msg_id):
         app.logger.info(f'主动回复状态：{r}, content: {r.content}')
     except Exception as e:
         app.logger.exception(f'主动回复报错，error: {e}')
+
 
     jobs.pop(msg_id)
 
