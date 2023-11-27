@@ -34,7 +34,7 @@ def index():
     """
     return render_template('index.html')
 
-@app.route('/api/message1', methods=['POST'])
+@app.route('/api/message', methods=['POST'])
 def receive_message1():
     """
     接收公众号消息推送
@@ -125,11 +125,12 @@ def worker(msg_id):
 
 
 
-@app.route('/api/message', methods=['POST'])
+@app.route('/api/message1', methods=['POST'])
 def receive_message():
     """
     接收公众号消息推送
     """
+    # 个人号不支持主动回复
 
     req = request.get_json()
     app.logger.info(req)
