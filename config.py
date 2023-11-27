@@ -1,7 +1,7 @@
 import os
 
 # 是否开启debug模式
-DEBUG = False
+DEBUG = True
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # openai
