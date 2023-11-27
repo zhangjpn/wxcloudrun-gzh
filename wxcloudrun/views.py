@@ -43,7 +43,7 @@ def receive_message():
         'create_time': int(time.time()),
         'content': '抱歉，系统当前不可用，请稍后再试',
     }
-    if req.get('content', '') == 'openai':
+    if req.get('Content', '') == 'openai':
         try:
             res['content'] = '这里应该填写响应数据'
             key = os.environ.get('OPENAI_API_KEY', '')[-10:]
