@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 from flask import render_template, request, jsonify
 from run import app
@@ -73,7 +74,7 @@ def receive_message():
         "Content": res['content'],
     }
 
-    return jsonify(ret)
+    return json.dumps(ret, ensure_ascii=False)
 
 
 @app.route('/api/count', methods=['POST'])
