@@ -6,6 +6,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # openai
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+OPENAI_BASE_URL = os.environ.get('OPENAI_BASE_URL', '')
 
 # 读取数据库环境变量
 username = os.environ.get("MYSQL_USERNAME", 'root')

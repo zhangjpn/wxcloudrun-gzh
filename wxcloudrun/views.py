@@ -1,7 +1,6 @@
-import os
 import json
 from datetime import datetime
-from flask import render_template, request, jsonify
+from flask import render_template, request
 from run import app
 from wxcloudrun.dao import delete_counterbyid, query_counterbyid, insert_counter, update_counterbyid
 from wxcloudrun.model import Counters
@@ -29,52 +28,49 @@ def index():
     """
     return render_template('index.html')
 
+
 @app.route('/api/message', methods=['POST'])
 def receive_message():
     """
     接收公众号消息推送
     """
 
-
     req = request.get_json()
     app.logger.info(req)
     res = {
-        'to_user': req['FromUserName'],
-        'from_user': req['ToUserName'],
-        'create_time': int(time.time()),
-        'content': '抱歉，系统当前不可用，请稍后再试',
+        "ToUserName": req['FromUserName'],
+        "FromUserName": req['ToUserName'],
+        "CreateTime": int(time.time()),
+        "MsgType": "text",
+        "Content": '抱歉，系统当前不可用，请稍后再试',
     }
-    if req.get('Content', '') == 'openai':
+
+    question = req.get('Content', '')
+    if not question:
+        res['Content'] = '我没看懂你的意思'
+    else:
         try:
-            res['content'] = '这里应该填写响应数据'
-            key = os.environ.get('OPENAI_API_KEY', '')[-10:]
-            app.logger.info(f'openai_api_key: {key}')
+            # key = os.environ.get('OPENAI_API_KEY', '')[-10:]
+            # app.logger.info(f'openai_api_key: {key}')
 
             completion = client.chat.completions.create(
               model="gpt-3.5-turbo",
               messages=[
                 # {"role": "system", "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
                 # {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
-                {"role": "user", "content": "Result of 1 + 1"}
+                {"role": "user", "content": question}
               ]
             )
 
             app.logger.info(completion.choices[0].message)
-            res['content'] = str(completion.choices[0].message)
+            res['Content'] = str(completion.choices[0].message.content)
 
         except Exception as e:
             app.logger.exception(f'请求报错，error: {e}')
 
     # return TEXT_TEMPLATE.format(**res)
-    ret = {
-        "ToUserName": req['FromUserName'],
-        "FromUserName": req['ToUserName'],
-        "CreateTime": int(time.time()),
-        "MsgType": "text",
-        "Content": res['content'],
-    }
 
-    return json.dumps(ret, ensure_ascii=False)
+    return json.dumps(res, ensure_ascii=False)
 
 
 @app.route('/api/count', methods=['POST'])
