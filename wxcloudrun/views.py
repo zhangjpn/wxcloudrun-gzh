@@ -7,7 +7,13 @@ from wxcloudrun.model import Counters
 from wxcloudrun.response import make_succ_empty_response, make_succ_response, make_err_response
 import time
 from openai import OpenAI
+import requests
+from concurrent.futures import ThreadPoolExecutor
 client = OpenAI()
+
+pool = ThreadPoolExecutor(4)
+
+jobs = {}
 
 
 TEXT_TEMPLATE = """
@@ -28,9 +34,8 @@ def index():
     """
     return render_template('index.html')
 
-
-@app.route('/api/message', methods=['POST'])
-def receive_message():
+@app.route('/api/message1', methods=['POST'])
+def receive_message1():
     """
     接收公众号消息推送
     """
@@ -71,6 +76,64 @@ def receive_message():
     # return TEXT_TEMPLATE.format(**res)
 
     return json.dumps(res, ensure_ascii=False)
+
+def worker(msg_id):
+
+    req = jobs.get(msg_id)
+    if not req:
+        return
+
+    res = {
+        "touser": req['FromUserName'],
+        "msgtype": "text",
+        "text": {
+            "content": '抱歉，系统当前不可用，请稍后再试',
+        }
+    }
+
+    question = req.get('Content', '')
+    if not question:
+        res['text']['content'] = '我没看懂你的意思'
+    else:
+        try:
+            completion = client.chat.completions.create(
+              model="gpt-3.5-turbo",
+              messages=[
+                # {"role": "system", "content": "You are a poetic assistant, skilled in explaining complex programming concepts with creative flair."},
+                # {"role": "user", "content": "Compose a poem that explains the concept of recursion in programming."}
+                {"role": "user", "content": question}
+              ]
+            )
+
+            app.logger.info(completion.choices[0].message)
+            res['text']['content'] = str(completion.choices[0].message.content)
+
+        except Exception as e:
+            app.logger.exception(f'请求报错，error: {e}')
+    try:
+        app.logger.info(f'主动回复请求值：{res}')
+        r = requests.post('http://api.weixin.qq.com/cgi-bin/message/custom/send', json=res)
+        app.logger.info(f'主动回复状态：{r}, content: {r.content}')
+    except Exception as e:
+        app.logger.exception(f'主动回复报错，error: {e}')
+
+    jobs.pop(msg_id)
+
+
+
+
+
+@app.route('/api/message', methods=['POST'])
+def receive_message():
+    """
+    接收公众号消息推送
+    """
+
+    req = request.get_json()
+    app.logger.info(req)
+    jobs[req['MsgId']] = req
+    pool.submit(worker, req['MsgId'])
+    return 'success'
 
 
 @app.route('/api/count', methods=['POST'])
